@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  POM agregador: solo sirve para abrir ambos proyectos juntos en el IDE (IntelliJ).
+  Cada servicio se compila de forma independiente dentro de su propia imagen Docker.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>co.edu.fet.sd</groupId>
+    <artifactId>taller02-rabbitmq-docker</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>productor</module>
+        <module>consumidor</module>
+    </modules>
+</project>

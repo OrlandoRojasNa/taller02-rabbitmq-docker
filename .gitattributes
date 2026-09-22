@@ -1,0 +1,5 @@
+# Finales de linea LF para archivos que se usan dentro de contenedores Linux
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary

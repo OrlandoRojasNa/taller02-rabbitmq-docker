@@ -1,0 +1,135 @@
+{
+  "info": {
+    "name": "Taller 02 - RabbitMQ en Docker",
+    "description": "Pruebas del productor (API) y consulta del estado de la cola en la consola de RabbitMQ.\n\nPara enviar 10 mensajes validos: Runner -> seleccionar solo 'Enviar mensaje valido' -> Iterations = 10 -> Run.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "rabbitUrl", "value": "http://localhost:15672" },
+    { "key": "cola", "value": "cola.sensores" }
+  ],
+  "item": [
+    {
+      "name": "Enviar mensaje valido",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Content-Type application/json', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+              "const r = pm.response.json();",
+              "pm.test('status es boolean true', () => pm.expect(r.status).to.be.a('boolean').and.to.equal(true));",
+              "pm.test('message = Mensaje encolado', () => pm.expect(r.message).to.equal('Mensaje encolado'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sensor\": \"OD-01\",\n  \"valor\": {{$randomInt}},\n  \"unidad\": \"mg/L\",\n  \"iteracion\": {{$randomInt}}\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/mensajes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "mensajes"]
+        }
+      }
+    },
+    {
+      "name": "Enviar mensaje invalido (JSON mal formado)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('Content-Type application/json', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+              "const r = pm.response.json();",
+              "pm.test('status es boolean false', () => pm.expect(r.status).to.be.a('boolean').and.to.equal(false));",
+              "pm.test('message = Formato de mensaje invalido', () => pm.expect(r.message).to.equal('Formato de mensaje inválido'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sensor\": \"OD-01\",\n  \"valor\": ,\n  \"unidad\": \"mg/L\"\n"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/mensajes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "mensajes"]
+        }
+      }
+    },
+    {
+      "name": "Enviar mensaje invalido (texto plano)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "const r = pm.response.json();",
+              "pm.test('status es boolean false', () => pm.expect(r.status).to.be.a('boolean').and.to.equal(false));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "text/plain" }],
+        "body": { "mode": "raw", "raw": "esto no es un JSON" },
+        "url": {
+          "raw": "{{baseUrl}}/api/mensajes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "mensajes"]
+        }
+      }
+    },
+    {
+      "name": "Estado de la cola (API de administracion RabbitMQ)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const q = pm.response.json();",
+              "console.log(`cola=${q.name} durable=${q.durable} mensajes=${q.messages} listos=${q.messages_ready} sin_ack=${q.messages_unacknowledged} consumidores=${q.consumers}`);",
+              "pm.test('La cola es durable', () => pm.expect(q.durable).to.equal(true));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            { "key": "username", "value": "lab", "type": "string" },
+            { "key": "password", "value": "lab123", "type": "string" }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{rabbitUrl}}/api/queues/%2F/{{cola}}",
+          "host": ["{{rabbitUrl}}"],
+          "path": ["api", "queues", "%2F", "{{cola}}"]
+        }
+      }
+    }
+  ]
+}

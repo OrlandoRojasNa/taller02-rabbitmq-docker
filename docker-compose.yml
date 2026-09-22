@@ -1,0 +1,54 @@
+name: taller02-rabbitmq
+
+services:
+  rabbitmq:
+    build: ./rabbitmq
+    container_name: rabbitmq
+    # El nombre del nodo depende del hostname; fijarlo mantiene los datos del volumen entre reinicios
+    hostname: rabbitmq
+    ports:
+      - "15672:15672"   # consola de administracion
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  productor:
+    build: ./productor
+    container_name: productor
+    ports:
+      - "8080:8080"     # API REST
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: lab
+      SPRING_RABBITMQ_PASSWORD: lab123
+      APP_COLA: cola.sensores
+      TZ: America/Bogota
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  consumidor:
+    build: ./consumidor
+    container_name: consumidor
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: lab
+      SPRING_RABBITMQ_PASSWORD: lab123
+      APP_COLA: cola.sensores
+      TZ: America/Bogota
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:

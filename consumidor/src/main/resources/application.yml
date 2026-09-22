@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: consumidor
+  main:
+    web-application-type: none
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:lab}
+    password: ${SPRING_RABBITMQ_PASSWORD:lab123}
+    listener:
+      simple:
+        # ACK manual: el mensaje solo sale de la cola despues de procesarlo
+        acknowledge-mode: manual
+        prefetch: 1
+        # Si RabbitMQ aun no esta listo, el listener reintenta en lugar de terminar con error
+        missing-queues-fatal: false
+        retry:
+          enabled: false
+
+app:
+  cola: ${APP_COLA:cola.sensores}
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{0} - %msg%n"

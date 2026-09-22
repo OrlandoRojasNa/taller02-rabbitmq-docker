@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: productor
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:lab}
+    password: ${SPRING_RABBITMQ_PASSWORD:lab123}
+    # El broker confirma cada publicacion: solo respondemos "encolado" cuando RabbitMQ lo acepto
+    publisher-confirm-type: simple
+    connection-timeout: 5s
+
+app:
+  cola: ${APP_COLA:cola.sensores}
+  confirm-timeout-ms: 5000

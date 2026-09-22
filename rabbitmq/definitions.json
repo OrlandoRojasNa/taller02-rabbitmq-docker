@@ -1,0 +1,25 @@
+{
+  "users": [
+    {
+      "name": "lab",
+      "password_hash": "fEeM4FooAVANuJhZEHD/h+PyOmA1332QuCbWFRDRtDH6kC8L",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ["administrator"]
+    }
+  ],
+  "vhosts": [
+    { "name": "/" }
+  ],
+  "permissions": [
+    { "user": "lab", "vhost": "/", "configure": ".*", "write": ".*", "read": ".*" }
+  ],
+  "queues": [
+    {
+      "name": "cola.sensores",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ]
+}
