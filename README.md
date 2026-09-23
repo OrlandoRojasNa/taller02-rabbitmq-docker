@@ -2,7 +2,7 @@
 
 **Asignatura:** Sistemas Distribuidos · **Programa:** Ingeniería de Software · **Periodo:** 2026-2
 **Docente:** Juan Carlos Polania Cortes
-**Integrantes:** _Nombre 1_ · _Nombre 2_
+**Integrantes:** Derly Dayana Garcia Carrillo · Orlando Rojas Narvaez
 
 Sistema de mensajería asíncrona **100 % dockerizado**:
 

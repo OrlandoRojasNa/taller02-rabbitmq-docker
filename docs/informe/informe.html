@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Informe Taller 02 - RabbitMQ en Docker</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+  :root { --verde: #8ab833; --verde-osc: #5d7d1f; --gris: #555; --borde: #d9d9d9; --fondo: #f6f8f2; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; color: #222; line-height: 1.45; margin: 0; }
+  h1, h2, h3 { color: #2b3a12; margin: 0; }
+  h2 { font-size: 14pt; background: var(--verde); color: #fff; padding: 5px 10px; margin: 22px 0 10px; break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 16px 0 6px; color: var(--verde-osc); break-after: avoid; }
+  p { margin: 6px 0; }
+  code { font-family: Consolas, monospace; font-size: 9.5pt; background: #f1f1f1; padding: 1px 4px; border-radius: 3px; }
+  pre { font-family: Consolas, monospace; font-size: 9pt; background: #1e1e1e; color: #e6e6e6; padding: 8px 10px; border-radius: 4px; margin: 6px 0; white-space: pre-wrap; break-inside: avoid; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 9.5pt; break-inside: avoid; }
+  th, td { border: 1px solid var(--borde); padding: 4px 7px; text-align: left; vertical-align: top; }
+  th { background: var(--fondo); }
+  ul { margin: 4px 0 4px 18px; padding: 0; }
+
+  /* Portada */
+  .portada { height: 255mm; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }
+  .portada .inst { text-align: center; font-size: 11pt; color: var(--gris); }
+  .portada .inst b { display: block; font-size: 13pt; color: #2b3a12; }
+  .portada .titulo { text-align: center; }
+  .portada .titulo .etq { display: inline-block; background: var(--verde); color: #fff; padding: 3px 12px; font-weight: 600; letter-spacing: .5px; }
+  .portada .titulo h1 { font-size: 24pt; margin: 14px 0 6px; }
+  .portada .titulo .sub { font-size: 14pt; color: var(--gris); }
+  .portada table { width: 75%; margin: 0 auto; font-size: 10.5pt; }
+  .portada th { width: 35%; }
+
+  /* Figuras */
+  figure { margin: 10px 0 14px; break-inside: avoid; }
+  figure .marco { border: 1px solid var(--borde); overflow: hidden; }
+  figure img { display: block; width: 100%; }
+  figure img.recorte-antes { margin-top: -7.4%; }
+  figure img.recorte-despues { margin-top: -7.4%; }
+  figcaption { font-size: 9pt; color: var(--gris); margin-top: 4px; }
+  figcaption b { color: #222; }
+  .pendiente { border: 2px dashed #d08a00; background: #fff8e6; color: #7a5200; padding: 14px; text-align: center; font-weight: 600; break-inside: avoid; margin: 10px 0; }
+  .ok { color: #2e7d32; font-weight: 600; }
+  .nota { background: var(--fondo); border-left: 4px solid var(--verde); padding: 6px 10px; margin: 8px 0; break-inside: avoid; }
+  .salto { break-before: page; }
+</style>
+</head>
+<body>
+
+<!-- ============ PORTADA ============ -->
+<section class="portada">
+  <div class="inst">
+    <b>FUNDACIÓN ESCUELA TECNOLÓGICA DE NEIVA "JESÚS OVIEDO PÉREZ"</b>
+    Ingeniería de Software · Sistemas Distribuidos
+  </div>
+  <div class="titulo">
+    <span class="etq">TALLER DE LABORATORIO N.º 2</span>
+    <h1>Mensajería con RabbitMQ<br>en contenedores Docker</h1>
+    <div class="sub">Informe de evidencias</div>
+  </div>
+  <table>
+    <tr><th>Integrantes</th><td>Derly Dayana Garcia Carrillo<br>Orlando Rojas Narvaez</td></tr>
+    <tr><th>Docente</th><td>Juan Carlos Polania Cortes</td></tr>
+    <tr><th>Semestre / Periodo</th><td>IX · 2026-2</td></tr>
+    <tr><th>Repositorio</th><td>github.com/OrlandoRojasNa/taller02-rabbitmq-docker</td></tr>
+    <tr><th>Fecha</th><td>22 de septiembre de 2026</td></tr>
+  </table>
+  <div></div>
+</section>
+
+<!-- ============ 1. DESCRIPCIÓN ============ -->
+<h2>1. Descripción de la solución</h2>
+<p>Sistema de mensajería asíncrona completamente dockerizado. El equipo solo necesita <b>Docker</b>: el lenguaje, las librerías y el broker viven dentro de las imágenes.</p>
+<pre>Postman ──POST /api/mensajes──▶ productor ──AMQP──▶ [ rabbitmq : cola.sensores ] ──AMQP──▶ consumidor ──▶ logs</pre>
+<table>
+  <tr><th>Servicio</th><th>Tecnología</th><th>Función</th><th>Puerto publicado</th></tr>
+  <tr><td><code>rabbitmq</code></td><td>RabbitMQ 4.1 + management</td><td>Intermediario. La cola durable <code>cola.sensores</code> se crea al arrancar desde <code>definitions.json</code>.</td><td>15672 (consola)</td></tr>
+  <tr><td><code>productor</code></td><td>Java 21 · Spring Boot 3.5</td><td>API REST que valida el JSON y lo publica como mensaje persistente con confirmación del broker.</td><td>8080 (API)</td></tr>
+  <tr><td><code>consumidor</code></td><td>Java 21 · Spring Boot 3.5</td><td>Lee la cola con ACK manual y registra el contenido y la hora de recepción en sus logs.</td><td>ninguno</td></tr>
+</table>
+
+<h3>Cumplimiento de requisitos</h3>
+<table>
+  <tr><th style="width:38%">Requisito</th><th>Implementación</th></tr>
+  <tr><td>Todo en contenedores</td><td>Dockerfiles multi-etapa: <code>maven:3.9-eclipse-temurin-21</code> compila y <code>eclipse-temurin:21-jre</code> ejecuta.</td></tr>
+  <tr><td>Un único comando</td><td><code>docker compose up -d --build</code> levanta los tres servicios.</td></tr>
+  <tr><td>Cola durable existente al levantar</td><td><code>load_definitions</code> de RabbitMQ con <code>durable: true</code>. Las aplicaciones también la declaran con los mismos atributos (idempotente).</td></tr>
+  <tr><td>POST + JSON, <code>status</code> booleano</td><td><code>POST /api/mensajes</code>. La respuesta es <code>record Respuesta(boolean status, String message)</code> con <code>Content-Type: application/json</code>.</td></tr>
+  <tr><td>Retirar el mensaje solo después de procesarlo</td><td><code>acknowledge-mode: manual</code>: <code>basicAck</code> después de registrar el mensaje, <code>prefetch: 1</code>.</td></tr>
+  <tr><td>Persistencia ante reinicios</td><td>Cola durable + mensajes <code>PERSISTENT</code> + volumen <code>rabbitmq_data</code> + <code>hostname</code> fijo.</td></tr>
+  <tr><td>Servicios por nombre, reintento de conexión</td><td>Host <code>rabbitmq</code> en la red de Docker. <code>depends_on: service_healthy</code> + reintentos automáticos de Spring AMQP.</td></tr>
+</table>
+
+<h3>Respuestas de la API</h3>
+<table>
+  <tr><th>Caso</th><th>HTTP</th><th>Cuerpo</th></tr>
+  <tr><td>Mensaje publicado</td><td>200</td><td><code>{"status": true, "message": "Mensaje encolado"}</code></td></tr>
+  <tr><td>Cuerpo vacío, no JSON o mal formado</td><td>400</td><td><code>{"status": false, "message": "Formato de mensaje inválido"}</code></td></tr>
+  <tr><td>RabbitMQ no disponible</td><td>503</td><td><code>{"status": false, "message": "No se pudo publicar el mensaje en la cola"}</code></td></tr>
+</table>
+
+<!-- ============ 2. INSTRUCTIVO ============ -->
+<h2>2. Instructivo para levantar el entorno</h2>
+<p>En un equipo que solo tenga Docker instalado:</p>
+<pre>git clone https://github.com/OrlandoRojasNa/taller02-rabbitmq-docker.git
+cd taller02-rabbitmq-docker
+docker compose up -d --build</pre>
+<table>
+  <tr><th>Recurso</th><th>Acceso</th></tr>
+  <tr><td>Consola de RabbitMQ</td><td>http://localhost:15672 · usuario <code>lab</code> · contraseña <code>lab123</code></td></tr>
+  <tr><td>Endpoint del productor</td><td><code>POST http://localhost:8080/api/mensajes</code></td></tr>
+  <tr><td>Logs del consumidor</td><td><code>docker compose logs -f consumidor</code></td></tr>
+  <tr><td>Colección de Postman</td><td><code>postman/Taller02-RabbitMQ.postman_collection.json</code></td></tr>
+</table>
+<p>El instructivo completo, con los comandos de cada caso de prueba, está en el <code>README.md</code> del repositorio.</p>
+
+<!-- ============ 3. EVIDENCIAS ============ -->
+<h2 class="salto">3. Evidencias del entorno</h2>
+
+<figure>
+  <div class="marco"><img src="../evidencias/01-contenedores-arriba.png"></div>
+  <figcaption><b>Figura 1.</b> <code>docker compose ps</code>: los tres contenedores en ejecución, <code>rabbitmq</code> en estado <i>healthy</i>. Solo se publican los puertos 15672 (consola) y 8080 (API).</figcaption>
+</figure>
+
+<figure>
+  <div class="marco"><img src="../evidencias/02-cola-creada.png"></div>
+  <figcaption><b>Figura 2.</b> Consola de administración recién levantado el entorno: la cola <code>cola.sensores</code> ya existe, marcada con <b>D</b> (durable), sin haberla creado a mano.</figcaption>
+</figure>
+
+<h2 class="salto">4. Verificación con Postman</h2>
+
+<figure>
+  <div class="marco"><img src="../evidencias/03-postman-valido.png"></div>
+  <figcaption><b>Figura 3.</b> Mensaje válido: <code>200 OK</code>, <code>{"status": true, "message": "Mensaje encolado"}</code>. Tests 4/4 (incluye la verificación de que <code>status</code> es booleano).</figcaption>
+</figure>
+
+<figure>
+  <div class="marco"><img src="../evidencias/04-postman-invalido.png"></div>
+  <figcaption><b>Figura 4.</b> Mensaje inválido (JSON mal formado): <code>400 Bad Request</code>, <code>{"status": false, "message": "Formato de mensaje inválido"}</code>. Tests 4/4.</figcaption>
+</figure>
+
+<figure>
+  <div class="marco"><img src="../evidencias/05-runner-10-mensajes.png"></div>
+  <figcaption><b>Figura 5.</b> Collection Runner: 10 iteraciones de "Enviar mensaje valido". <b>40/40 tests aprobados, 0 errores</b>.</figcaption>
+</figure>
+
+<figure>
+  <div class="marco"><img src="../evidencias/06-logs-consumidor.png"></div>
+  <figcaption><b>Figura 6.</b> Log del consumidor: los 10 mensajes del Runner (<code>[#2]</code> a <code>[#11]</code>, 18:21:01–18:21:02) con su contenido y hora de recepción. <code>[#1]</code> corresponde a mensajes de prueba previos.</figcaption>
+</figure>
+
+<!-- ============ 5. CASOS ============ -->
+<h2 class="salto">5. Casos del punto 7</h2>
+
+<h3>Caso 1: consumidor detenido</h3>
+<p>Con <code>docker compose stop consumidor</code> se publicaron 5 mensajes. Se acumularon en la cola y, al ejecutar <code>docker compose start consumidor</code>, se consumieron todos.</p>
+
+<figure>
+  <div class="marco"><img class="recorte-antes" src="../evidencias/07-caso1-antes.png"></div>
+  <figcaption><b>Figura 7. Antes.</b> Consumidor detenido: <b>Ready = 5</b>, <b>Consumers (0)</b>. La cola es <code>durable: true</code> y los 5 mensajes son <b>Persistent</b>.</figcaption>
+</figure>
+
+<figure>
+  <div class="marco"><img class="recorte-despues" src="../evidencias/07-caso1-despues.png"></div>
+  <figcaption><b>Figura 8. Después.</b> Consumidor levantado: la gráfica baja de 5 a 0, pico de <i>Consumer ack</i>, <b>Consumers (1)</b> con <b>Ack required</b> (ACK manual) y <b>Prefetch count 1</b>.</figcaption>
+</figure>
+
+<figure>
+  <div class="marco"><img src="../evidencias/07-caso1-logs.png"></div>
+  <figcaption><b>Figura 9.</b> Log del consumidor: los 5 mensajes acumulados, recibidos a las 18:34:08, apenas se levantó el consumidor.</figcaption>
+</figure>
+
+<h3>Caso 2: reinicio de RabbitMQ</h3>
+<p>Con el consumidor detenido y mensajes pendientes en la cola, se reinicia el contenedor con <code>docker compose restart rabbitmq</code>. Los mensajes no deben perderse.</p>
+<!-- CASO2_INICIO -->
+<div class="pendiente">PENDIENTE: capturas 08-caso2-antes.png y 08-caso2-despues.png</div>
+<!-- CASO2_FIN -->
+
+<h3>Caso 3: mensaje inválido</h3>
+<p>Si la API recibe un cuerpo que no es JSON válido, responde con <code>status</code> en <code>false</code> y no publica nada en la cola.</p>
+<!-- CASO3_INICIO -->
+<div class="pendiente">PENDIENTE: capturas 09-caso3-antes.png y 09-caso3-despues.png</div>
+<!-- CASO3_FIN -->
+
+<!-- ============ 6. ENTREGABLES ============ -->
+<h2 class="salto">6. Entregables</h2>
+<table>
+  <tr><th>Entregable</th><th>Ubicación en el repositorio</th></tr>
+  <tr><td>Código fuente del productor y del consumidor</td><td><code>productor/src</code>, <code>consumidor/src</code></td></tr>
+  <tr><td>Dockerfiles y Docker Compose</td><td><code>productor/Dockerfile</code>, <code>consumidor/Dockerfile</code>, <code>rabbitmq/Dockerfile</code>, <code>docker-compose.yml</code></td></tr>
+  <tr><td>Instructivo</td><td><code>README.md</code></td></tr>
+  <tr><td>Colección de Postman exportada</td><td><code>postman/Taller02-RabbitMQ.postman_collection.json</code></td></tr>
+  <tr><td>Capturas</td><td><code>docs/evidencias/</code></td></tr>
+  <tr><td>Declaración de uso de IA</td><td><code>docs/DECLARACION_IA.md</code> y sección 7 de este informe</td></tr>
+</table>
+
+<!-- ============ 7. DECLARACIÓN IA ============ -->
+<h2>7. Declaración de uso de herramientas de inteligencia artificial</h2>
+<p><b>Herramienta:</b> Claude Code (Anthropic), modelo Claude Opus 5.5, desde la aplicación de escritorio de Claude.</p>
+<p><b>Finalidad:</b></p>
+<ul>
+  <li>Leer el enunciado del taller, extraer los requisitos y revisar que el documento no tuviera texto oculto.</li>
+  <li>Generar el proyecto completo: <code>docker-compose.yml</code>, Dockerfiles, configuración de RabbitMQ, el código del productor y del consumidor (Java 21 + Spring Boot) y las pruebas unitarias del productor.</li>
+  <li>Generar la colección de Postman y el instructivo (<code>README.md</code>).</li>
+  <li>Crear el repositorio en GitHub, hacer los commits y agregar a la integrante como colaboradora.</li>
+  <li>Guiar paso a paso la ejecución de las pruebas y la toma de capturas, y armar este informe.</li>
+  <li>Diagnosticar dos problemas durante la ejecución: una caída momentánea de red al descargar imágenes de Docker Hub y Docker Desktop, que no se inició después de reiniciar el equipo.</li>
+</ul>
+<p><b>Qué se modificó del resultado:</b> <b>no se modificó el código generado por la herramienta.</b> El trabajo de los integrantes sobre el resultado fue:</p>
+<ul>
+  <li>Instalar Docker Desktop y levantar el entorno completo con <code>docker compose up -d --build</code>.</li>
+  <li>Importar la colección en Postman y ejecutar las peticiones (mensaje válido, inválido y el Runner con 10 mensajes).</li>
+  <li>Ejecutar los casos del punto 7 y verificar los resultados en la consola de administración y en los logs del consumidor.</li>
+  <li>Tomar las capturas de evidencia.</li>
+</ul>
+<p>Los integrantes respondemos por el funcionamiento del proyecto entregado.</p>
+
+</body>
+</html>

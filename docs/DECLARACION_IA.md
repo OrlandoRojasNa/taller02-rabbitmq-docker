@@ -1,28 +1,29 @@
 # Declaración de uso de herramientas de inteligencia artificial
 
-> Requisito del taller: sin esta declaración la entrega **no es evaluable**.
-> Complete o ajuste las secciones marcadas con ✏️ según lo que **realmente** hizo.
+**Integrantes:** Derly Dayana Garcia Carrillo · Orlando Rojas Narvaez
 
 ## Herramienta utilizada
 
-- **Claude Code** (Anthropic), modelo Claude Opus 5.5, usado desde la aplicación de escritorio de Claude.
+**Claude Code** (Anthropic), modelo Claude Opus 5.5, usado desde la aplicación de escritorio de Claude.
 
 ## Finalidad
 
-- Revisar el enunciado del taller (PDF) y extraer los requisitos.
-- Generar la estructura inicial del proyecto: `docker-compose.yml`, Dockerfiles, definiciones de RabbitMQ, el código del productor (Spring Boot) y del consumidor (Spring Boot) y las pruebas unitarias del productor.
-- Generar la colección de Postman y el borrador del instructivo (`README.md`).
-- Crear el repositorio en GitHub y hacer el primer commit.
+- Leer el enunciado del taller (PDF), extraer los requisitos y revisar que el documento no tuviera texto oculto.
+- Generar el proyecto completo: `docker-compose.yml`, Dockerfiles, configuración y definiciones de RabbitMQ (cola durable), el código del productor y del consumidor (Java 21 + Spring Boot) y las pruebas unitarias del productor.
+- Generar la colección de Postman y el instructivo (`README.md`).
+- Crear el repositorio en GitHub, hacer los commits y agregar a la integrante como colaboradora.
+- Guiar paso a paso la ejecución de las pruebas y la toma de capturas, y armar el informe en PDF.
+- Diagnosticar dos problemas durante la ejecución: una caída momentánea de red al descargar las imágenes de Docker Hub y Docker Desktop, que no se inició después de reiniciar el equipo.
 
-## Qué se modificó / verificó del resultado
+## Qué se modificó del resultado
 
-✏️ _Describa aquí con sus palabras qué revisó, qué cambió y qué comprobó. Por ejemplo:_
-- ✏️ _Ejecuté `docker compose up -d --build` en mi equipo y verifiqué que los 3 contenedores quedaran arriba._
-- ✏️ _Cambié ... porque ..._
-- ✏️ _Tomé las capturas de los casos del punto 7 y verifiqué que ..._
+**No se modificó el código generado por la herramienta.** El trabajo de los integrantes sobre el resultado fue:
+
+- Instalar Docker Desktop y levantar el entorno completo con `docker compose up -d --build`.
+- Importar la colección en Postman y ejecutar las peticiones (mensaje válido, mensaje inválido y el Runner con 10 mensajes).
+- Ejecutar los casos del punto 7 (detener el consumidor, reiniciar RabbitMQ, enviar mensajes inválidos) y verificar los resultados en la consola de administración y en los logs del consumidor.
+- Tomar las capturas de evidencia.
 
 ## Responsabilidad
 
-Los integrantes revisamos y entendemos el código entregado y respondemos por su funcionamiento.
-
-✏️ Integrantes: _Nombre 1_ · _Nombre 2_
+Los integrantes respondemos por el funcionamiento del proyecto entregado.
