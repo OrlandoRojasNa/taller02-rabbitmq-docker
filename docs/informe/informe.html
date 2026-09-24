@@ -249,5 +249,18 @@ docker compose up -d --build</pre>
 </ul>
 <p>Los integrantes respondemos por el funcionamiento del proyecto entregado.</p>
 
+<script>
+  // Si una captura no existe, se muestra un aviso en lugar de una imagen rota
+  document.querySelectorAll('.marco img').forEach(function (img) {
+    function avisar() {
+      var archivo = img.getAttribute('src').split('/').pop();
+      var aviso = document.createElement('div');
+      aviso.className = 'pendiente';
+      aviso.textContent = 'Captura no incluida en esta entrega: ' + archivo;
+      img.parentNode.replaceWith(aviso);
+    }
+    if (img.complete && img.naturalWidth === 0) { avisar(); } else { img.addEventListener('error', avisar); }
+  });
+</script>
 </body>
 </html>
