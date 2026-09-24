@@ -148,6 +148,7 @@ taller02-rabbitmq-docker/
 ├── postman/                    # colección exportada
 ├── docs/
 │   ├── DECLARACION_IA.md       # declaración de uso de IA (obligatoria)
+│   ├── entregables/            # un PDF por cada entregable (generar.py + generar-pdf.ps1)
 │   └── evidencias/             # capturas de pantalla
 └── pom.xml                     # agregador, solo para abrir todo en IntelliJ
 ```
