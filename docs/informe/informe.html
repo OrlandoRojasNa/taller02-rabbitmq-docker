@@ -170,15 +170,49 @@ docker compose up -d --build</pre>
 </figure>
 
 <h3>Caso 2: reinicio de RabbitMQ</h3>
-<p>Con el consumidor detenido y mensajes pendientes en la cola, se reinicia el contenedor con <code>docker compose restart rabbitmq</code>. Los mensajes no deben perderse.</p>
+<p>Con el consumidor detenido (<code>docker compose stop consumidor</code>) se publicaron varios mensajes desde Postman y se anotó el valor de <i>Ready</i>. Luego se reinició el broker con <code>docker compose restart rabbitmq</code>, se volvió a iniciar sesión en la consola y se comprobó que la cola tenía <b>la misma cantidad</b> de mensajes. Por último, <code>docker compose start consumidor</code> los procesó todos.</p>
+<p>Los mensajes sobreviven porque se cumplen las cuatro condiciones a la vez:</p>
+<table>
+  <tr><th>Condición</th><th>Dónde se configura</th></tr>
+  <tr><td>La cola es durable (su definición se guarda en disco)</td><td><code>rabbitmq/definitions.json</code> → <code>"durable": true</code></td></tr>
+  <tr><td>Cada mensaje es persistente (se escribe en disco)</td><td><code>PublicadorService</code> → <code>MessageDeliveryMode.PERSISTENT</code></td></tr>
+  <tr><td>Los datos del nodo viven fuera del contenedor</td><td><code>docker-compose.yml</code> → volumen <code>rabbitmq_data:/var/lib/rabbitmq</code></td></tr>
+  <tr><td>El nombre del nodo no cambia entre reinicios</td><td><code>docker-compose.yml</code> → <code>hostname: rabbitmq</code></td></tr>
+</table>
+<p>Además, el productor no necesita reiniciarse: Spring AMQP abre una conexión nueva en la siguiente publicación, y el consumidor reintenta conectarse cada 5 s.</p>
 <!-- CASO2_INICIO -->
-<div class="pendiente">PENDIENTE: capturas 08-caso2-antes.png y 08-caso2-despues.png</div>
+<figure>
+  <div class="marco"><img src="../evidencias/08-caso2-antes.png"></div>
+  <figcaption><b>Figura 10. Antes.</b> Consumidor detenido, mensajes acumulados en <code>cola.sensores</code> (<i>Ready</i> &gt; 0, <b>Consumers (0)</b>), justo antes de <code>docker compose restart rabbitmq</code>.</figcaption>
+</figure>
+
+<figure>
+  <div class="marco"><img src="../evidencias/08-caso2-despues.png"></div>
+  <figcaption><b>Figura 11. Después.</b> Tras el reinicio del broker (la gráfica se reinicia porque las estadísticas no se conservan), la cola sigue existiendo y <i>Ready</i> muestra <b>la misma cantidad</b> de mensajes: no se perdió ninguno.</figcaption>
+</figure>
 <!-- CASO2_FIN -->
 
 <h3>Caso 3: mensaje inválido</h3>
-<p>Si la API recibe un cuerpo que no es JSON válido, responde con <code>status</code> en <code>false</code> y no publica nada en la cola.</p>
+<p>Si la API recibe un cuerpo que no es JSON válido, responde con <code>status</code> en <code>false</code> y no publica nada en la cola. Se anotó el total de <code>cola.sensores</code>, se envió <i>Enviar mensaje invalido (JSON mal formado)</i> desde Postman y se comprobó que el total no cambió.</p>
+<p>La validación ocurre <b>antes</b> de tocar RabbitMQ: <code>PublicadorService.validar()</code> exige un objeto JSON con al menos un campo y sin contenido extra al final (<code>FAIL_ON_TRAILING_TOKENS</code>). Si falla, lanza <code>MensajeInvalidoException</code>, <code>ManejadorErrores</code> la convierte en <code>400</code> con <code>{"status": false, "message": "Formato de mensaje inválido"}</code> y en el log del productor queda <code>Mensaje rechazado, no se publica: …</code>.</p>
+<table>
+  <tr><th>Cuerpo enviado</th><th>HTTP</th><th>¿Se publica?</th></tr>
+  <tr><td><code>{"sensor": "OD-01", "valor": }</code> (mal formado)</td><td>400</td><td>No</td></tr>
+  <tr><td><code>esto no es json</code> (texto plano)</td><td>400</td><td>No</td></tr>
+  <tr><td>(cuerpo vacío)</td><td>400</td><td>No</td></tr>
+  <tr><td><code>{"sensor": "OD-01"} basura</code> (contenido extra)</td><td>400</td><td>No</td></tr>
+  <tr><td><code>[1, 2, 3]</code> o <code>{}</code> (no es un objeto con campos)</td><td>400</td><td>No</td></tr>
+</table>
 <!-- CASO3_INICIO -->
-<div class="pendiente">PENDIENTE: capturas 09-caso3-antes.png y 09-caso3-despues.png</div>
+<figure>
+  <div class="marco"><img src="../evidencias/09-caso3-antes.png"></div>
+  <figcaption><b>Figura 12. Antes.</b> Total de mensajes de <code>cola.sensores</code> antes de enviar el mensaje inválido.</figcaption>
+</figure>
+
+<figure>
+  <div class="marco"><img src="../evidencias/09-caso3-despues.png"></div>
+  <figcaption><b>Figura 13. Después.</b> Postman recibe <code>400 Bad Request</code> con <code>"status": false</code> y el total de la cola <b>no cambia</b>.</figcaption>
+</figure>
 <!-- CASO3_FIN -->
 
 <!-- ============ 6. ENTREGABLES ============ -->
@@ -204,6 +238,7 @@ docker compose up -d --build</pre>
   <li>Crear el repositorio en GitHub, hacer los commits y agregar a la integrante como colaboradora.</li>
   <li>Guiar paso a paso la ejecución de las pruebas y la toma de capturas, y armar este informe.</li>
   <li>Diagnosticar dos problemas durante la ejecución: una caída momentánea de red al descargar imágenes de Docker Hub y Docker Desktop, que no se inició después de reiniciar el equipo.</li>
+  <li>Redactar la documentación de los casos 2 y 3 del punto 7 (procedimiento, explicación y pies de figura). Antes de redactarla, la herramienta ejecutó ambos casos en un entorno de pruebas propio para comprobar el comportamiento. Las capturas de este informe las tomaron los integrantes en su equipo.</li>
 </ul>
 <p><b>Qué se modificó del resultado:</b> <b>no se modificó el código generado por la herramienta.</b> El trabajo de los integrantes sobre el resultado fue:</p>
 <ul>

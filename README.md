@@ -87,7 +87,7 @@ Todas las respuestas llevan `Content-Type: application/json`.
 ## 5. Casos a comprobar (punto 7 del taller)
 
 > Tome capturas **antes y después** en la consola: *Queues and Streams → cola.sensores* (columnas *Ready*, *Unacked*, *Total* y la gráfica de *Queued messages*).
-> Guárdelas en [`docs/evidencias/`](docs/evidencias/).
+> Guárdelas en [`docs/evidencias/`](docs/evidencias/). Allí está la lista de capturas, cuáles faltan y el paso a paso para tomarlas.
 
 ### Caso 1: consumidor detenido
 
