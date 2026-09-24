@@ -14,6 +14,8 @@
 - Crear el repositorio en GitHub, hacer los commits y agregar a la integrante como colaboradora.
 - Guiar paso a paso la ejecución de las pruebas y la toma de capturas, y armar el informe en PDF.
 - Diagnosticar dos problemas durante la ejecución: una caída momentánea de red al descargar las imágenes de Docker Hub y Docker Desktop, que no se inició después de reiniciar el equipo.
+- Redactar la documentación de los casos 2 y 3 del punto 7 (procedimiento, explicación y pies de figura en el informe, y la guía de capturas en `docs/evidencias/README.md`). Antes de redactarla, la herramienta ejecutó ambos casos en un entorno de pruebas propio para comprobar el comportamiento. Las capturas de evidencia las tomaron los integrantes en su equipo; las de los casos 2 y 3 no se incluyen en esta entrega.
+- Regenerar el informe en PDF, generar un documento PDF por cada entregable (`docs/entregables/`) y armar el archivo comprimido de entrega.
 
 ## Qué se modificó del resultado
 
